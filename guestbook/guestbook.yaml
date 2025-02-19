@@ -90,7 +90,7 @@ spec:
     spec:
       containers:
         - name: slave
-          image: gcr.io/google_samples/redis-slave:v1
+          image: gcr.io/google-samples/redis-slave:v1
           ports:
             - containerPort: 6379
           env:
