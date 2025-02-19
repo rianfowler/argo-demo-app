@@ -1,0 +1,138 @@
+# guestbook/guestbook.yaml
+
+# Redis Master Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-master
+  labels:
+    app: guestbook
+    tier: backend
+    role: master
+spec:
+  ports:
+    - port: 6379
+  selector:
+    app: guestbook
+    tier: backend
+    role: master
+---
+# Redis Master Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-master
+  labels:
+    app: guestbook
+    tier: backend
+    role: master
+spec:
+  selector:
+    matchLabels:
+      app: guestbook
+      tier: backend
+      role: master
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: guestbook
+        tier: backend
+        role: master
+    spec:
+      containers:
+        - name: master
+          image: redis:6.0.5
+          ports:
+            - containerPort: 6379
+---
+# Redis Slave Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-slave
+  labels:
+    app: guestbook
+    tier: backend
+    role: slave
+spec:
+  ports:
+    - port: 6379
+  selector:
+    app: guestbook
+    tier: backend
+    role: slave
+---
+# Redis Slave Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-slave
+  labels:
+    app: guestbook
+    tier: backend
+    role: slave
+spec:
+  selector:
+    matchLabels:
+      app: guestbook
+      tier: backend
+      role: slave
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: guestbook
+        tier: backend
+        role: slave
+    spec:
+      containers:
+        - name: slave
+          image: gcr.io/google_samples/redis-slave:v1
+          ports:
+            - containerPort: 6379
+          env:
+            - name: GET_HOSTS_FROM
+              value: dns
+---
+# Guestbook Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: guestbook
+  labels:
+    app: guestbook
+    tier: frontend
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 3000
+  selector:
+    app: guestbook
+    tier: frontend
+---
+# Guestbook Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guestbook
+  labels:
+    app: guestbook
+    tier: frontend
+spec:
+  selector:
+    matchLabels:
+      app: guestbook
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: guestbook
+        tier: frontend
+    spec:
+      containers:
+        - name: guestbook
+
