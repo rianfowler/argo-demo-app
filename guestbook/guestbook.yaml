@@ -1,138 +1,37 @@
-# guestbook/guestbook.yaml
+# app/sample-app.yaml
 
-# Redis Master Service
-apiVersion: v1
-kind: Service
-metadata:
-  name: redis-master
-  labels:
-    app: guestbook
-    tier: backend
-    role: master
-spec:
-  ports:
-    - port: 6379
-  selector:
-    app: guestbook
-    tier: backend
-    role: master
 ---
-# Redis Master Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis-master
+  name: sample-app
   labels:
-    app: guestbook
-    tier: backend
-    role: master
+    app: sample-app
 spec:
+  replicas: 1
   selector:
     matchLabels:
-      app: guestbook
-      tier: backend
-      role: master
-  strategy:
-    type: Recreate
+      app: sample-app
   template:
     metadata:
       labels:
-        app: guestbook
-        tier: backend
-        role: master
+        app: sample-app
     spec:
       containers:
-        - name: master
-          image: redis:6.0.5
+        - name: sample-app
+          image: nginxdemos/hello:plain-text
           ports:
-            - containerPort: 6379
+            - containerPort: 80
 ---
-# Redis Slave Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis-slave
-  labels:
-    app: guestbook
-    tier: backend
-    role: slave
+  name: sample-app
 spec:
+  type: ClusterIP
+  selector:
+    app: sample-app
   ports:
-    - port: 6379
-  selector:
-    app: guestbook
-    tier: backend
-    role: slave
----
-# Redis Slave Deployment
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: redis-slave
-  labels:
-    app: guestbook
-    tier: backend
-    role: slave
-spec:
-  selector:
-    matchLabels:
-      app: guestbook
-      tier: backend
-      role: slave
-  strategy:
-    type: Recreate
-  template:
-    metadata:
-      labels:
-        app: guestbook
-        tier: backend
-        role: slave
-    spec:
-      containers:
-        - name: slave
-          image: gcr.io/google-samples/redis-slave:v1
-          ports:
-            - containerPort: 6379
-          env:
-            - name: GET_HOSTS_FROM
-              value: dns
----
-# Guestbook Frontend Service
-apiVersion: v1
-kind: Service
-metadata:
-  name: guestbook
-  labels:
-    app: guestbook
-    tier: frontend
-spec:
-  type: LoadBalancer
-  ports:
-    - port: 80
-      targetPort: 3000
-  selector:
-    app: guestbook
-    tier: frontend
----
-# Guestbook Frontend Deployment
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: guestbook
-  labels:
-    app: guestbook
-    tier: frontend
-spec:
-  selector:
-    matchLabels:
-      app: guestbook
-      tier: frontend
-  template:
-    metadata:
-      labels:
-        app: guestbook
-        tier: frontend
-    spec:
-      containers:
-        - name: guestbook
-
+    - protocol: TCP
+      port: 80
+      targetPort: 80
